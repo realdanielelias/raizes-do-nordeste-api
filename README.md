@@ -19,7 +19,7 @@ A solução centraliza as operações mercantis e de faturamento da rede de fran
 
 ## 2. Tecnologias e Requisitos do Ambiente
 
-- Linguagem: Python 3.13 (compatível com 3.10+)
+- Linguagem: Python 3.13 
 - Framework Web: FastAPI (ASGI / OpenAPI 3.0)
 - Servidor ASGI: Uvicorn
 - ORM e Persistência: SQLAlchemy 2.0+ com SQLite (base relacional embarcada)

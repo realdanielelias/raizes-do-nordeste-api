@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Optional, Any
 from pydantic import BaseModel, EmailStr, Field
 from app.domain.enums import CanalPedido, StatusPedido, MetodoPagamento
+from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
 
 class ErrorDetail(BaseModel):
     field: str
@@ -26,7 +27,7 @@ class UserInfo(BaseModel):
 class LoginResponse(BaseModel):
     accessToken: str
     tokenType: str = "Bearer"
-    expiresIn: int = 3600
+    expiresIn: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60
     user: UserInfo
 
 class ProdutoResponse(BaseModel):

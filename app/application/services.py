@@ -8,6 +8,7 @@ from app.infrastructure.models import (
 )
 from app.api.schemas import PedidoCreate, PagamentoMockRequest
 from app.core.security import hash_senha, verificar_senha, criar_token_jwt
+from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
 
 class AuthService:
     @staticmethod
@@ -22,7 +23,7 @@ class AuthService:
         return {
             "accessToken": token,
             "tokenType": "Bearer",
-            "expiresIn": 3600,
+            "expiresIn": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             "user": {"id": usuario.id, "nome": usuario.nome, "perfil": usuario.perfil}
         }
 

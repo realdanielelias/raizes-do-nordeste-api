@@ -5,12 +5,13 @@ from fastapi.exceptions import RequestValidationError
 from app.infrastructure.database import engine, Base, SessionLocal
 from app.infrastructure.models import UsuarioDB, UnidadeDB, ProdutoDB, EstoqueDB
 from app.core.security import hash_senha
+from app.core.config import PROJECT_NAME
 from app.api.routers import auth, produtos, pedidos, pagamentos, admin
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Raízes do Nordeste - API Back-End",
+    title=PROJECT_NAME,
     description="API RESTful para a rede de franquias Raízes do Nordeste com suporte a multicanalidade, estoque por loja e pagamento mock desacoplado.",
     version="1.0.0",
     docs_url="/docs",
