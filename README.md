@@ -37,6 +37,7 @@ A solução centraliza as operações mercantis e de faturamento da rede de fran
 
 O projeto adota os preceitos da Clean Architecture, segregando responsabilidades em 4 camadas concêntricas:
 
+```text
 raizes-do-nordeste-api/
 ├── app/
 │   ├── __init__.py
