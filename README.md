@@ -4,10 +4,6 @@ API RESTful desenvolvida como requisito avaliativo da disciplina Projeto Multidi
 
 Aluno: Daniel Elias de Souza
 RU: 4590111
-Polo: Marília
-Ano / Semestre: 2026
-Docente Responsável: Profa. Me. Luciane Yanase Kanashiro
-Repositório Público: https://github.com/realdanielelias/raizes-do-nordeste-api
 
 ---
 
