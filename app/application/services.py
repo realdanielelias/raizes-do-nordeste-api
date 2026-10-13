@@ -37,33 +37,42 @@ class OrderService:
                 detail={"error": "UNIDADE_NAO_ENCONTRADA", "message": f"Unidade {dados.unidadeId} não encontrada ou inativa."}
             )
 
-        valor_total = 0.0
-        itens_a_inserir = []
-
+        # Consolidar demanda por produto para prevenir bypass em caso de itens repetidos
+        demanda_por_produto: dict[int, int] = {}
         for item_in in dados.itens:
-            produto = db.query(ProdutoDB).filter(ProdutoDB.id == item_in.produtoId, ProdutoDB.ativo == True).first()
+            demanda_por_produto[item_in.produtoId] = demanda_por_produto.get(item_in.produtoId, 0) + item_in.quantidade
+
+        # Validar existência dos produtos e disponibilidade de estoque agregado
+        produtos_map = {}
+        for prod_id, qtd_solicitada in demanda_por_produto.items():
+            produto = db.query(ProdutoDB).filter(ProdutoDB.id == prod_id, ProdutoDB.ativo == True).first()
             if not produto:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail={"error": "PRODUTO_NAO_ENCONTRADO", "message": f"Produto ID {item_in.produtoId} não encontrado."}
+                    detail={"error": "PRODUTO_NAO_ENCONTRADO", "message": f"Produto ID {prod_id} não encontrado ou inativo."}
                 )
+            produtos_map[prod_id] = produto
 
             estoque = db.query(EstoqueDB).filter(
                 EstoqueDB.unidade_id == dados.unidadeId,
-                EstoqueDB.produto_id == item_in.produtoId
+                EstoqueDB.produto_id == prod_id
             ).first()
 
-            if not estoque or estoque.quantidade_disponivel < item_in.quantidade:
+            if not estoque or estoque.quantidade_disponivel < qtd_solicitada:
                 disponivel = estoque.quantidade_disponivel if estoque else 0
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail={
                         "error": "ESTOQUE_INSUFICIENTE",
                         "message": "Não há quantidade suficiente para atender ao item solicitado.",
-                        "details": [{"field": f"produtoId {item_in.produtoId}", "issue": f"Disponível: {disponivel}, Solicitado: {item_in.quantidade}"}]
+                        "details": [{"field": f"produtoId {prod_id}", "issue": f"Disponível: {disponivel}, Solicitado: {qtd_solicitada}"}]
                     }
                 )
 
+        valor_total = 0.0
+        itens_a_inserir = []
+        for item_in in dados.itens:
+            produto = produtos_map[item_in.produtoId]
             subtotal = round(produto.preco * item_in.quantidade, 2)
             valor_total += subtotal
             itens_a_inserir.append((produto.id, item_in.quantidade, produto.preco, subtotal))
@@ -93,12 +102,22 @@ class OrderService:
 
 class PaymentMockService:
     @staticmethod
-    def processar_mock(db: Session, dados: PagamentoMockRequest, usuario_id: int):
+    def processar_mock(db: Session, dados: PagamentoMockRequest, usuario: dict):
+        usuario_id = usuario.get("id")
+        perfil = usuario.get("perfil")
+
         pedido = db.query(PedidoDB).filter(PedidoDB.id == dados.pedidoId).first()
         if not pedido:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"error": "PEDIDO_NAO_ENCONTRADO", "message": f"Pedido {dados.pedidoId} inexistente."}
+            )
+
+        # Prevenção IDOR: Usuários CLIENTE só podem efetuar pagamento do próprio pedido
+        if perfil == "CLIENTE" and pedido.cliente_id != usuario_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"error": "ACESSO_NEGADO", "message": "Usuário não autorizado a liquidar pedidos de terceiros."}
             )
 
         if pedido.status != "AGUARDANDO_PAGAMENTO":
@@ -110,14 +129,24 @@ class PaymentMockService:
         tx_id = f"mock-tx-{uuid.uuid4().hex[:10]}"
 
         if dados.simularAprovacao:
+            # Validar e decrementar atomicamente o saldo de estoque físico
             for item in pedido.itens:
                 estoque = db.query(EstoqueDB).filter(
                     EstoqueDB.unidade_id == pedido.unidade_id,
                     EstoqueDB.produto_id == item.produto_id
                 ).first()
-                if estoque:
-                    estoque.quantidade_disponivel -= item.quantidade
-                    estoque.atualizado_em = datetime.now(timezone.utc)
+                if not estoque or estoque.quantidade_disponivel < item.quantidade:
+                    disponivel = estoque.quantidade_disponivel if estoque else 0
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail={
+                            "error": "ESTOQUE_INSUFICIENTE",
+                            "message": f"Estoque insuficiente para o produto ID {item.produto_id} no momento da liquidação.",
+                            "details": [{"field": f"produtoId {item.produto_id}", "issue": f"Disponível: {disponivel}, Solicitado: {item.quantidade}"}]
+                        }
+                    )
+                estoque.quantidade_disponivel -= item.quantidade
+                estoque.atualizado_em = datetime.now(timezone.utc)
 
             pedido.status = "EM_PREPARO"
             pagamento = PagamentoDB(

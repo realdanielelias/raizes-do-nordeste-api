@@ -1,8 +1,9 @@
+import json
 from fastapi import APIRouter, Depends, Query, status, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.infrastructure.database import get_db
-from app.infrastructure.models import PedidoDB
+from app.infrastructure.models import PedidoDB, AuditoriaLogDB
 from app.api.schemas import PedidoCreate, PedidoResponse, ItemPedidoResponse, StatusUpdateRequest
 from app.application.services import OrderService
 from app.core.security import obter_usuario_logado, exigir_perfil
@@ -35,12 +36,17 @@ def criar_pedido(
 
 @router.get("", response_model=List[PedidoResponse], summary="Listar e filtrar pedidos")
 def listar_pedidos(
-    canalPedido: Optional[str] = Query(None, description="Filtro obrigatório de multicanalidade (APP, TOTEM...)"),
+    canalPedido: Optional[str] = Query(None, description="Filtro de multicanalidade (APP, TOTEM, BALCAO...)"),
     status: Optional[str] = Query(None, description="Filtro por status"),
     db: Session = Depends(get_db),
     usuario: dict = Depends(obter_usuario_logado)
 ):
     query = db.query(PedidoDB)
+
+    # Clientes visualizam apenas seus próprios pedidos (Privacidade / LGPD)
+    if usuario.get("perfil") == "CLIENTE":
+        query = query.filter(PedidoDB.cliente_id == usuario["id"])
+
     if canalPedido:
         query = query.filter(PedidoDB.canal_pedido == canalPedido.upper())
     if status:
@@ -75,7 +81,24 @@ def atualizar_status(
 ):
     pedido = db.query(PedidoDB).filter(PedidoDB.id == id).first()
     if not pedido:
-        raise HTTPException(status_code=404, detail={"error": "NAO_ENCONTRADO", "message": "Pedido inexistente"})
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "NAO_ENCONTRADO", "message": "Pedido inexistente"}
+        )
+
+    status_anterior = pedido.status
     pedido.status = dados.novoStatus.value
+
+    db.add(AuditoriaLogDB(
+        usuario_id=usuario["id"],
+        acao="ATUALIZAR_STATUS_PEDIDO",
+        entidade="PEDIDO",
+        registro_id=id,
+        detalhes_json=json.dumps({
+            "statusAnterior": status_anterior,
+            "novoStatus": dados.novoStatus.value
+        })
+    ))
+
     db.commit()
     return {"pedidoId": id, "statusAtualizado": pedido.status}

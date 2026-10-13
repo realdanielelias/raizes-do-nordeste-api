@@ -13,4 +13,4 @@ def pagar_mock(
     db: Session = Depends(get_db),
     usuario: dict = Depends(obter_usuario_logado)
 ):
-    return PaymentMockService.processar_mock(db, dados, usuario_id=usuario["id"])
+    return PaymentMockService.processar_mock(db, dados, usuario=usuario)

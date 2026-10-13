@@ -115,7 +115,7 @@ Com a aplicação em execução, acesse no navegador:
 
 ## 6. Plano de Testes e Evidências (Postman)
 
-A suíte de testes está formalizada no arquivo postman_collection.json na raiz do repositório. Ela cobre 10 cenários determinísticos (6 positivos e 4 negativos):
+A suíte de testes está formalizada no arquivo postman_collection.json na raiz do repositório. Ela cobre 10 cenários determinísticos (6 positivos e 4 negativos) conforme edital da UNINTER:
 
 - T01 | Positivo | Login com credenciais válidas e emissão de JWT (POST /api/v1/auth/login) -> HTTP 200 OK
 - T02 | Positivo | Consulta de cardápio por filial ativa (GET /api/v1/produtos?unidadeId=1) -> HTTP 200 OK
@@ -129,15 +129,20 @@ A suíte de testes está formalizada no arquivo postman_collection.json na raiz 
 - T10 | Negativo | Pedido com quantidade superior ao estoque físico (POST /api/v1/pedidos) -> HTTP 409 Conflict
 
 ### Como Executar os Testes no Postman:
-1. Abra o Postman e clique em Import.
-2. Selecione o arquivo postman_collection.json da raiz deste projeto.
-3. Execute o teste T01 (Login) primeiro para obter o accessToken.
-4. Copie o token e atualize a variável tokenCliente da coleção.
-5. Execute os testes na ordem numérica sugerida (T01 a T10).
+1. Abra o Postman e clique em **Import**.
+2. Selecione o arquivo `postman_collection.json` da raiz deste projeto.
+3. Obter o token de **Cliente**:
+   - Execute o teste **T01** com o body padrão (`cliente@raizes.com` / `SenhaValida123`).
+   - Copie o `accessToken` da resposta e cole na variável de coleção **`tokenCliente`**.
+4. Obter o token de **Atendente** (necessário para a Cozinha no **T06**):
+   - No **T01**, troque o e-mail no body para `atendente@raizes.com` e clique em Send.
+   - Copie o `accessToken` retornado e cole na variável de coleção **`tokenAtendente`**.
+   - *(Restaure o e-mail do T01 para `cliente@raizes.com`)*.
+5. Execute os testes na ordem numérica (**T01 a T10**). Todos os cenários passarão com sucesso de acordo com os códigos HTTP esperados!
 
 ---
 
 ## 7. Credenciais Pré-Cadastradas no Seed:
-- Cliente: cliente@raizes.com | Senha: SenhaValida123 (Perfil: CLIENTE)
-- Atendente: atendente@raizes.com | Senha: SenhaValida123 (Perfil: ATENDENTE)
-- Gerente: gerente@raizes.com | Senha: SenhaValida123 (Perfil: GERENTE)
+- **Cliente:** `cliente@raizes.com` | Senha: `SenhaValida123` (Perfil: `CLIENTE` — cria pedidos e efetua pagamento)
+- **Atendente:** `atendente@raizes.com` | Senha: `SenhaValida123` (Perfil: `ATENDENTE` — opera pedidos e atualiza status na cozinha)
+- **Gerente:** `gerente@raizes.com` | Senha: `SenhaValida123` (Perfil: `GERENTE` — gestão de filiais e ajuste manual de estoque com auditoria)

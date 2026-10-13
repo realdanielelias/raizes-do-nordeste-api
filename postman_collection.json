@@ -6,7 +6,8 @@
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8000" },
-    { "key": "tokenCliente", "value": "" }
+    { "key": "tokenCliente", "value": "" },
+    { "key": "tokenAtendente", "value": "" }
   ],
   "item": [
     {
@@ -84,7 +85,7 @@
         "method": "PATCH",
         "header": [
           { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{tokenCliente}}" }
+          { "key": "Authorization", "value": "Bearer {{tokenAtendente}}" }
         ],
         "body": {
           "mode": "raw",

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Any
 from pydantic import BaseModel, EmailStr, Field
 from app.domain.enums import CanalPedido, StatusPedido, MetodoPagamento
@@ -12,7 +12,7 @@ class ErrorResponse(BaseModel):
     error: str
     message: str
     details: List[ErrorDetail] = []
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     path: str
 
 class LoginRequest(BaseModel):
