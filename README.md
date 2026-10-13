@@ -29,7 +29,7 @@ A solução centraliza as operações mercantis e de faturamento da rede de fran
 
 ---
 
-## 3. Arquitetura em Camadas (Separation of Concerns)
+## 3. Arquitetura em Camadas
 
 O projeto adota os preceitos da Clean Architecture, segregando responsabilidades em 4 camadas concêntricas:
 
@@ -92,8 +92,9 @@ pip install -r requirements.txt
 ### 4.4 Configurar as Variáveis de Ambiente
 cp .env.example .env
 
-### 4.5 Banco de Dados, Migrations e Carga Inicial (Seed)
-A aplicação conta com geração e migração relacional automática. Na inicialização do servidor, o script main.py executa Base.metadata.create_all() e povoa o banco com dados de teste (seed):
+### 4.5 Banco de Dados
+Na inicialização do servidor, o script main.py executa Base.metadata.create_all() e povoa o banco com dados de teste (seed):
+
 - 3 Usuários com perfis RBAC: CLIENTE, ATENDENTE e GERENTE.
 - 1 Franquia operacional: Unidade 1 - Recife Boa Viagem.
 - 3 Produtos regionais com estoque ativo: Cuscuz Recheado, Tapioca Rendada e Bolo de Macaxeira.
@@ -113,9 +114,9 @@ Com a aplicação em execução, acesse no navegador:
 
 ---
 
-## 6. Plano de Testes e Evidências (Postman)
+## 6. Plano de Testes
 
-A suíte de testes está formalizada no arquivo postman_collection.json na raiz do repositório. Ela cobre 10 cenários determinísticos (6 positivos e 4 negativos) conforme edital da UNINTER:
+A base de testes está formalizada no arquivo postman_collection.json na raiz do repositório. Ela cobre 10 cenários determinísticos (6 positivos e 4 negativos) conforme edital da UNINTER:
 
 - T01 | Positivo | Login com credenciais válidas e emissão de JWT (POST /api/v1/auth/login) -> HTTP 200 OK
 - T02 | Positivo | Consulta de cardápio por filial ativa (GET /api/v1/produtos?unidadeId=1) -> HTTP 200 OK
@@ -142,7 +143,7 @@ A suíte de testes está formalizada no arquivo postman_collection.json na raiz 
 
 ---
 
-## 7. Credenciais Pré-Cadastradas no Seed:
+## 7. Credenciais Pré-Cadastradas:
 - **Cliente:** `cliente@raizes.com` | Senha: `SenhaValida123` (Perfil: `CLIENTE` — cria pedidos e efetua pagamento)
 - **Atendente:** `atendente@raizes.com` | Senha: `SenhaValida123` (Perfil: `ATENDENTE` — opera pedidos e atualiza status na cozinha)
 - **Gerente:** `gerente@raizes.com` | Senha: `SenhaValida123` (Perfil: `GERENTE` — gestão de filiais e ajuste manual de estoque com auditoria)
