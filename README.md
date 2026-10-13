@@ -37,7 +37,7 @@ A solução centraliza as operações mercantis e de faturamento da rede de fran
 
 O projeto adota os preceitos da Clean Architecture, segregando responsabilidades em 4 camadas concêntricas:
 
-'''text
+```text
 raizes-do-nordeste-api/
 ├── app/
 │   ├── __init__.py
@@ -72,7 +72,7 @@ raizes-do-nordeste-api/
 ├── postman_collection.json        # Coleção com os 10 cenários de testes
 └── main.py                        # Ponto de entrada da aplicação e rotina de seed
 
-'''
+```
 ---
 
 ## 4. Guia de Execução Local (Passo a Passo)
